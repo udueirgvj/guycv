@@ -3,92 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعدك الذكي - Haidar</title>
+    <title>تطبيق Haidar الذكي</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .chat-container { width: 100%; max-width: 450px; height: 90vh; background: #1e293b; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .chat-header { background: #334155; padding: 16px; text-align: center; font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #475569; }
+        .chat-header { background: #334155; padding: 16px; text-align: center; font-weight: bold; border-bottom: 1px solid #475569; }
         .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .message { max-width: 80%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; font-size: 0.95rem; word-wrap: break-word; }
-        .user-message { background: #3b82f6; color: white; align-self: flex-start; border-bottom-right-radius: 2px; }
-        .ai-message { background: #475569; color: #f1f5f9; align-self: flex-end; border-bottom-left-radius: 2px; }
-        .chat-input-area { display: flex; padding: 12px; background: #334155; border-top: 1px solid #475569; }
-        .chat-input-area input { flex: 1; padding: 10px 14px; border: none; border-radius: 8px; background: #1e293b; color: white; outline: none; font-size: 0.95rem; }
-        .chat-input-area button { margin-right: 8px; padding: 10px 16px; border: none; background: #3b82f6; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .chat-input-area button:hover { background: #2563eb; }
+        .message { max-width: 80%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; }
+        .user-message { background: #3b82f6; align-self: flex-start; }
+        .ai-message { background: #475569; align-self: flex-end; }
+        .chat-input-area { display: flex; padding: 12px; background: #334155; }
+        .chat-input-area input { flex: 1; padding: 10px; border-radius: 8px; border: none; background: #1e293b; color: white; }
+        .chat-input-area button { margin-right: 8px; padding: 10px 16px; border: none; background: #3b82f6; color: white; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-        <div class="chat-header">المساعد الذكي (تطوير: Haidar)</div>
+        <div class="chat-header">المساعد الذكي - Haidar</div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message ai-message">أهلاً بك يا Haidar! تم تحديث الاتصال، اكتب رسالتك بالأسفل.</div>
+            <div class="message ai-message">أهلاً Haidar! أنا جاهز للدردشة، ماذا تريد أن نسأل اليوم؟</div>
         </div>
         <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
+            <input type="text" id="userInput" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') sendMessage()">
             <button onclick="sendMessage()">إرسال</button>
         </div>
     </div>
 
     <script>
-        const apiKey = "AQ.Ab8RN6LvqQA58-1gE4x1rYlnofgEJKh2SddJPxKol3LglNLMXw";
-        const modelName = "gemini-pro"; // تم التعديل إلى النموذج المدعوم
-
+        // تم إضافة مفتاحك هنا
+        const apiKey = "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"; 
+        
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
-            const messageText = inputField.value.trim();
-            if (!messageText) return;
+            const chatMessages = document.getElementById('chatMessages');
+            const text = inputField.value.trim();
+            if (!text) return;
 
-            appendMessage(messageText, 'user-message');
+            chatMessages.innerHTML += `<div class="message user-message">${text}</div>`;
             inputField.value = '';
 
-            const chatMessages = document.getElementById('chatMessages');
-            const loadingId = 'loading-' + Date.now();
-            appendMessage('جاري الرد...', 'ai-message', loadingId);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
             try {
-                // تم التعديل إلى الإصدار v1 الأساسي لضمان استقرار الاتصال
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`, {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: messageText }] }],
-                        generationConfig: {
-                            temperature: 0.7
-                        }
+                        model: "llama3-8b-8192",
+                        messages: [{ role: "user", content: text }]
                     })
                 });
 
                 const data = await response.json();
-                document.getElementById(loadingId).remove();
-
-                if (response.ok && data.candidates && data.candidates.length > 0) {
-                    const aiReply = data.candidates[0].content.parts[0].text;
-                    appendMessage(aiReply, 'ai-message');
-                } else {
-                    appendMessage("خطأ من الخادم: " + (data.error?.message || "تأكد من صلاحية المفتاح"), 'ai-message');
-                }
-            } catch (error) {
-                document.getElementById(loadingId)?.remove();
-                appendMessage("فشل الاتصال: " + error.message, 'ai-message');
+                const reply = data.choices[0].message.content;
+                chatMessages.innerHTML += `<div class="message ai-message">${reply}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (e) {
+                chatMessages.innerHTML += `<div class="message ai-message">خطأ: تأكد من الاتصال.</div>`;
             }
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function appendMessage(text, className, id = '') {
-            const chatMessages = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${className}`;
-            if (id) msgDiv.id = id;
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv);
-        }
-
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
         }
     </script>
 </body>
