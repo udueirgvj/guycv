@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم البوت</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>body { font-family: sans-serif; padding: 20px; background: #f4f4f9; } .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; }</style>
+</head>
+<body>
+
+    <!-- خيار إضافة حساب -->
+    <div class="card">
+        <h3>إضافة حساب إنستقرام</h3>
+        <input type="text" id="username" placeholder="اسم المستخدم">
+        <button onclick="addAccount()">إضافة الحساب</button>
+    </div>
+
+    <!-- خيار تنفيذ أمر -->
+    <div class="card">
+        <h3>تنفيذ مهمة</h3>
+        <select id="taskType">
+            <option value="like">لايك</option>
+            <option value="follow">متابعة</option>
+            <option value="comment">تعليق</option>
+        </select>
+        <input type="text" id="targetUrl" placeholder="رابط المنشور/الحساب">
+        <button onclick="addTask()">بدء المهمة</button>
+    </div>
+
+    <script>
+        const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_KEY');
+
+        async function addAccount() {
+            const user = document.getElementById('username').value;
+            await supabase.from('accounts').insert([{ username: user }]);
+            alert('تم إضافة الحساب!');
+        }
+
+        async function addTask() {
+            const type = document.getElementById('taskType').value;
+            const url = document.getElementById('targetUrl').value;
+            await supabase.from('tasks').insert([{ task_type: type, target_url: url, status: 'pending' }]);
+            alert('تم جدولة المهمة وسيقوم البوت بتنفيذها!');
+        }
+    </script>
+</body>
+</html>
+
